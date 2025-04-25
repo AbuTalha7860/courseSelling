@@ -38,7 +38,7 @@ const Home = () => {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const response = await axios.get(`${BACKEND_URL}/courses/`, {
+        const response = await axios.get(`${BACKEND_URL}/courses`, {
           withCredentials: true
         });
         console.log("Courses fetched successfully", response.data);

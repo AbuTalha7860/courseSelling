@@ -41,16 +41,24 @@ const DB_URI = process.env.MONGO_URI;
 // Async function to connect to MongoDB
 const connectDB = async () => {
     try {
-        await mongoose.connect(DB_URI);
-        console.log('Connected to MongoDB');
-        app.listen(port, () => {
-            console.log(`Server is running on port ${port}`);
-        });
-    } catch (err) {
-        console.error('Error connecting to MongoDB', err);
+      await mongoose.connect(DB_URI);
+      console.log('Connected to MongoDB');
+      app.listen(port, () => {
+        console.log(`Server is running on port ${port}`);
+      }).on('error', (err) => {
+        console.error('Server startup error:', err);
         process.exit(1);
+      });
+    } catch (err) {
+      console.error('Error connecting to MongoDB:', err);
+      process.exit(1);
     }
-};
+  };
+  
+  process.on('unhandledRejection', (err) => {
+    console.error('Unhandled Rejection:', err);
+    process.exit(1);
+  });
 
 connectDB();
 
