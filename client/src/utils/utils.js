@@ -1,1 +1,1 @@
-export const BACKEND_URL = 'http://localhost:3100/api';
+export const BACKEND_URL = 'https://coursesellingwebsite-pe0r.onrender.com';
