@@ -23,7 +23,7 @@ const Home = () => {
   }, [])
   const handleLogout = async () => {
     try {
-      const response = await axios.get("http://localhost:3100/api/user/logout", {
+      const response = await axios.get(`${BACKEND_URL}/user/logout`, {
         withCredentials: true
       });
       toast.success(response.data.message);
