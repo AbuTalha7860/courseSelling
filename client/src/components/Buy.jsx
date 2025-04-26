@@ -18,7 +18,7 @@ function Buy() {
   const [cardError, setCardError] = useState('');
 
   const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const token = user?.token || null; // Fallback to localStorage token
+  const token = user?.token || (document.cookie.split('; ').find(row => row.startsWith('jwt='))?.split('=')[1]) || null;
 
   const stripe = useStripe();
   const elements = useElements();
@@ -36,13 +36,14 @@ function Buy() {
   const fetchBuyCourseData = async (courseId) => {
     try {
       console.log(`Fetching buy course data for courseId: ${courseId}`);
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
       const token = user?.token || (document.cookie.split('; ').find(row => row.startsWith('jwt='))?.split('=')[1]);
       if (!token) {
         toast.error('Please log in to continue');
         window.location.href = '/login';
         return;
       }
-      const response = await axios.post(`${BACKEND_URL}/buy/${courseId}`, {}, {
+      const response = await axios.post(`${BACKEND_URL}/courses/buy/${courseId}`, {}, {
         withCredentials: true,
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -123,7 +124,7 @@ function Buy() {
             status: paymentIntent.status,
           };
           const confirmResponse = await axios.post(
-            `${BACKEND_URL}/confirm`,
+            `${BACKEND_URL}/courses/confirm`,
             paymentInfo,
             { headers: { Authorization: `Bearer ${token || document.cookie.split('; ').find(row => row.startsWith('jwt='))?.split('=')[1]}` }, withCredentials: true }
           );
