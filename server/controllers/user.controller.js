@@ -87,7 +87,7 @@ export const getPurchases = async (req, res) => {
       return res.status(401).json({ errors: "User not authenticated" });
     }
 
-    const userId = req.user._id; // Use _id to match MongoDB document
+    const userId = req.user._id;
     console.log("Fetching purchases for userId:", userId);
     const purchases = await Purchase.find({ userId }).populate('courseId');
     console.log('Raw purchases data:', purchases);

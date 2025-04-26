@@ -29,6 +29,13 @@ app.use(fileUpload({
     tempFileDir: '/tmp/'
 }));
 
+// Add logging for all incoming requests
+app.use((req, res, next) => {
+  console.log(`Incoming request: ${req.method} ${req.url}`);
+  console.log('Request headers:', req.headers);
+  console.log('Request cookies:', req.cookies);
+  next();
+});
 
 const allowedOrigins = process.env.FRONTEND_URL
   ? process.env.FRONTEND_URL.split(',')
@@ -47,9 +54,21 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE']
 }));
 
-
 const port = process.env.PORT || 3100;
 const DB_URI = process.env.MONGO_URI;
+
+// Routes
+app.use('/api/courses', courseRoute);
+app.use('/api/user', userRoute);
+app.use('/api/admin', adminRoute);
+app.use('/api/order', orderRoute);
+
+// Cloudinary configuration
+cloudinary.config({ 
+    cloud_name: process.env.CLOUD_NAME, 
+    api_key: process.env.API_KEY, 
+    api_secret: process.env.API_SECRET,
+});
 
 // Async function to connect to MongoDB
 const connectDB = async () => {
@@ -66,24 +85,11 @@ const connectDB = async () => {
       console.error('Error connecting to MongoDB:', err);
       process.exit(1);
     }
-  };
+};
   
-  process.on('unhandledRejection', (err) => {
-    console.error('Unhandled Rejection:', err);
-    process.exit(1);
-  });
+process.on('unhandledRejection', (err) => {
+  console.error('Unhandled Rejection:', err);
+  process.exit(1);
+});
 
 connectDB();
-
-// Routes
-app.use('/api/courses', courseRoute);
-app.use('/api/user', userRoute);
-app.use('/api/admin', adminRoute);
-app.use('/api/order', orderRoute);
-
-// Cloudinary configuration
-cloudinary.config({ 
-    cloud_name: process.env.CLOUD_NAME, 
-    api_key: process.env.API_KEY, 
-    api_secret: process.env.API_SECRET,
-});

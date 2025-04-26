@@ -59,6 +59,7 @@ function Purchases() {
         headers: { Authorization: `Bearer ${token}` },
         withCredentials: true,
       });
+      console.log('Request headers:', response.config.headers);
       console.log('Purchases API response:', response.data);
       const courseData = response.data.purchasedCourses || [];
       if (!Array.isArray(courseData)) {
