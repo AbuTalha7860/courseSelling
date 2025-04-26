@@ -20,25 +20,16 @@ function Login() {
     try {
       const response = await axios.post(
         `${BACKEND_URL}/user/login`,
-        {
-          email,
-          password,
-        },
-        {
-          withCredentials: true,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
+        { email, password },
+        { withCredentials: true, headers: { "Content-Type": "application/json" } }
       );
       console.log("Login successful: ", response.data);
       toast.success(response.data.msg);
 
-      // Clear stale localStorage and store new user data
-      localStorage.removeItem("user");
-      localStorage.setItem("user", JSON.stringify(response.data));
-
-      navigate("/"); // Redirect to home page
+      // Extract and store only the token and user data
+      const { token, existingUser } = response.data;
+      localStorage.setItem('user', JSON.stringify({ token, existingUser }));
+      navigate('/');
     } catch (error) {
       const errorMsg = error.response?.data?.msg || "Login failed. Please try again.";
       toast.error(errorMsg);

@@ -37,7 +37,14 @@ function Buy() {
     try {
       console.log(`Fetching buy course data for courseId: ${courseId}`);
       const user = JSON.parse(localStorage.getItem('user') || '{}');
-      const token = user?.token || (document.cookie.split('; ').find(row => row.startsWith('jwt='))?.split('=')[1]);
+      let token = user?.token; // Use token from localStorage first
+      if (!token) {
+        // Fallback to cookie if localStorage is empty
+        token = document.cookie.split('; ').find(row => row.startsWith('jwt='))?.split('=')[1];
+        if (token) {
+          localStorage.setItem('user', JSON.stringify({ token, existingUser: { _id: req.user.id } })); // Sync localStorage
+        }
+      }
       if (!token) {
         toast.error('Please log in to continue');
         window.location.href = '/login';
