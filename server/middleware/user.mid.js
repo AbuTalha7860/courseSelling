@@ -6,6 +6,7 @@ const userMiddleware = async (req, res, next) => {
   try {
     console.log("Middleware started - Request headers:", req.headers);
     console.log("Middleware started - Request cookies:", req.cookies);
+    console.log("JWT_USER_PASSWORD in middleware:", config.JWT_USER_PASSWORD);
 
     const token = req.cookies.jwt || req.headers.authorization?.split(" ")[1];
     console.log("Extracted token in userMiddleware:", token);
@@ -27,7 +28,7 @@ const userMiddleware = async (req, res, next) => {
       return res.status(401).json({ errors: "User not found" });
     }
 
-    req.user = user; // Set req.user to the full user document
+    req.user = user; // Set req.user to the user document
     console.log("Set req.user in userMiddleware:", req.user._id, req.user);
     next();
   } catch (error) {
