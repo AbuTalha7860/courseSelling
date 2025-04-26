@@ -17,15 +17,15 @@ function Purchases() {
   const [loading, setLoading] = useState(true);
 
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem('user')) || {};
-  const token = user?.token || null;
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const token = user?.token || (document.cookie.split('; ').find(row => row.startsWith('jwt='))?.split('=')[1]) || null;
 
   console.log('User object:', user);
   console.log('Token:', token);
   console.log('Purchases:', purchases);
 
   useEffect(() => {
-    if (!token) {
+    if (!token && !document.cookie.includes('jwt')) {
       setIsLoggedIn(false);
       setErrorMessage('Please log in to view your purchases.');
       navigate('/login');
@@ -34,38 +34,34 @@ function Purchases() {
     }
   }, [token, navigate]);
 
-  useEffect(() => {
-    const fetchPurchases = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get('/api/user/purchases', {
-          headers: { Authorization: `Bearer ${token}` },
-          withCredentials: true,
-        });
-        console.log('Purchases API response:', response.data);
-        const courseData = response.data.purchasedCourses || [];
-        if (!Array.isArray(courseData)) {
-          console.error('Expected purchasedCourses to be an array, got:', courseData);
-          throw new Error('Invalid purchase data format');
-        }
-        setPurchases(courseData);
-        setErrorMessage('');
-      } catch (error) {
-        console.error('Error fetching purchases:', error);
-        const errorMsg =
-          error.response?.data?.message ||
-          (typeof error.response?.data === 'string' && error.response.data.includes('<!doctype html>')
-            ? 'Failed to reach backend server. Check if backend is running on port 3100.'
-            : 'Failed to fetch purchase data');
-        setErrorMessage(errorMsg);
-        toast.error(errorMsg);
-        setPurchases([]);
-      } finally {
-        setLoading(false);
+  const fetchPurchases = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${BACKEND_URL}/user/purchases`, {
+        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true,
+      });
+      console.log('Purchases API response:', response.data);
+      const courseData = response.data.purchasedCourses || [];
+      if (!Array.isArray(courseData)) {
+        console.error('Expected purchasedCourses to be an array, got:', courseData);
+        throw new Error('Invalid purchase data format');
       }
-    };
+      setPurchases(courseData);
+      setErrorMessage('');
+    } catch (error) {
+      console.error('Error fetching purchases:', error.response?.data || error.message);
+      const errorMsg = error.response?.data?.errors || 'Failed to fetch purchase data';
+      setErrorMessage(errorMsg);
+      toast.error(errorMsg);
+      setPurchases([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    if (token) {
+  useEffect(() => {
+    if (token || document.cookie.includes('jwt')) {
       fetchPurchases();
     }
   }, [token]);
@@ -77,6 +73,7 @@ function Purchases() {
       });
       toast.success(response.data.message || 'Logged out successfully');
       localStorage.removeItem('user');
+      document.cookie = 'jwt=; Max-Age=-1; path=/;'; // Clear cookie
       setIsLoggedIn(false);
       navigate('/login');
     } catch (error) {

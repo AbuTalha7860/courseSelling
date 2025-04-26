@@ -17,8 +17,8 @@ function Buy() {
   const [error, setError] = useState('');
   const [cardError, setCardError] = useState('');
 
-  const user = JSON.parse(localStorage.getItem('user')) || {};
-  const token = user?.token || null;
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const token = user?.token || null; // Fallback to localStorage token
 
   const stripe = useStripe();
   const elements = useElements();
@@ -27,56 +27,59 @@ function Buy() {
   const paymentInProgress = useRef(false);
 
   useEffect(() => {
-    if (!token || !user?.existingUser?._id) {
+    if (!token && !document.cookie.includes('jwt')) {
       toast.error('Please log in to purchase the course.');
       navigate('/login');
     }
-  }, [token, navigate, user?.existingUser?._id]);
+  }, [token, navigate]);
+
+  const fetchBuyCourseData = async (courseId) => {
+    try {
+      console.log(`Fetching buy course data for courseId: ${courseId}`);
+      const token = user?.token || (document.cookie.split('; ').find(row => row.startsWith('jwt='))?.split('=')[1]);
+      if (!token) {
+        toast.error('Please log in to continue');
+        window.location.href = '/login';
+        return;
+      }
+      const response = await axios.post(`${BACKEND_URL}/buy/${courseId}`, {}, {
+        withCredentials: true,
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log('Buy course data fetched successfully', response.data);
+      setCourse(response.data.course);
+      setClientSecret(response.data.clientSecret);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching buy course data:', error.response?.data || error.message);
+      if (error.response?.data?.errors === 'Invalid authorization or expired token') {
+        localStorage.removeItem('user');
+        toast.error('Session expired. Please log in again.');
+        window.location.href = '/login';
+      } else {
+        toast.error(error.response?.data?.errors || 'Failed to fetch buy course data');
+      }
+      throw error;
+    }
+  };
 
   useEffect(() => {
-    let isActive = true;
-    const fetchBuyCourseData = async () => {
-      console.log('Fetching buy course data for courseId:', courseId);
+    const fetchData = async () => {
       try {
-        setLoading(true);
-        const response = await axios.post(
-          `${BACKEND_URL}/courses/buy/${courseId}`,
-          {},
-          { headers: { Authorization: `Bearer ${token}` }, withCredentials: true }
-        );
-        console.log('API Response:', response.data);
-        if (isActive && response.data.course) {
-          setCourse(response.data.course);
-          setClientSecret(response.data.clientSecret || ''); // Handle null clientSecret
-        } else if (isActive) {
-          throw new Error('Invalid response structure');
-        }
-        setLoading(false);
+        const data = await fetchBuyCourseData(courseId);
+        setCourse(data.course);
+        setClientSecret(data.clientSecret);
       } catch (error) {
-        setLoading(false);
-        if (isActive && error?.response?.status === 400) {
-          setError('You have already purchased this course');
-          navigate('/purchases');
-        } else if (isActive) {
-          setError(error?.response?.data?.errors || 'An error occurred');
-          console.error('Error fetching buy course data:', error.response ? error.response.data : error.message);
-        }
+        setError('Failed to load course data');
       }
     };
-    if (token && user?.existingUser?._id) {
-      fetchBuyCourseData();
+    if ((token || document.cookie.includes('jwt')) && user?.existingUser?._id) {
+      fetchData();
     } else {
-      console.log('User not authenticated or no user ID');
-      if (isActive) {
-        setError('Please log in to purchase the course.');
-        navigate('/login');
-      }
+      setError('Please log in to purchase the course.');
+      navigate('/login');
     }
-    return () => {
-      isActive = false;
-    };
   }, [courseId, navigate, token, user?.existingUser?._id]);
-
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -88,45 +91,16 @@ function Buy() {
   const handlePurchase = useCallback(
     async (event) => {
       event.preventDefault();
-      if (!isMounted.current) {
-        console.log('Component is unmounted');
-        return;
-      }
+      if (!isMounted.current || !stripe || !elements || paymentInProgress.current) return;
 
-      if (!stripe || !elements) {
-        console.log('Stripe or Elements not found');
-        toast.error('Stripe is not loaded. Please try again.');
-        return;
-      }
-
-      const cardElement = elements.getElement(CardElement);
-      if (!cardElement || cardElement._destroyed) {
-        console.log('CardElement not found or destroyed');
-        toast.error('Card details are not loaded. Please refresh the page.');
-        return;
-      }
-
-      if (!clientSecret) {
-        console.log('No client secret found');
-        toast.error('Payment intent not available. Please refresh the page.');
-        return;
-      }
-
-      if (paymentInProgress.current) {
-        console.log('Payment already in progress');
-        return;
-      }
       paymentInProgress.current = true;
-
       try {
+        const cardElement = elements.getElement(CardElement);
         const { paymentMethod, error: paymentMethodError } = await stripe.createPaymentMethod({
           type: 'card',
           card: cardElement,
         });
-        console.log('[PaymentMethod Created]:', paymentMethod);
-
         if (paymentMethodError) {
-          console.log('Stripe PaymentMethod Error:', paymentMethodError);
           setCardError(paymentMethodError.message);
           paymentInProgress.current = false;
           return;
@@ -135,55 +109,38 @@ function Buy() {
         const { paymentIntent, error: confirmError } = await stripe.confirmCardPayment(clientSecret, {
           payment_method: paymentMethod.id,
         });
-        console.log('Confirmed Payment Intent Response:', { paymentIntent, confirmError });
-
         if (confirmError) {
-          console.log('Confirm Error Details:', confirmError);
-          setCardError(confirmError.message || 'Payment confirmation failed');
+          setCardError(confirmError.message);
           paymentInProgress.current = false;
           return;
         }
 
         if (paymentIntent.status === 'succeeded') {
-          console.log('Confirmed Payment Intent:', paymentIntent);
           const paymentInfo = {
-            email: user?.existingUser?.email || '',
-            userId: user?.existingUser?._id || '',
-            courseId,
             paymentId: paymentIntent.id,
-            amount: paymentIntent.amount,
+            courseId,
+            amount: paymentIntent.amount / 100,
             status: paymentIntent.status,
           };
-          console.log('Payment info:', paymentInfo);
-
-          await axios
-            .post(
-              '/api/order',
-              paymentInfo,
-              { headers: { Authorization: `Bearer ${token}` }, withCredentials: true }
-            )
-            .then((response) => {
-              console.log('Order response:', response.data);
-              toast.success('Payment Successful');
-              navigate('/purchases');
-            })
-            .catch((error) => {
-              console.error('Order error:', error.response ? error.response.data : error.message);
-              toast.error('Error processing order. Please try again.');
-            });
+          const confirmResponse = await axios.post(
+            `${BACKEND_URL}/confirm`,
+            paymentInfo,
+            { headers: { Authorization: `Bearer ${token || document.cookie.split('; ').find(row => row.startsWith('jwt='))?.split('=')[1]}` }, withCredentials: true }
+          );
+          toast.success('Payment Successful');
+          navigate('/purchases');
         } else {
           setCardError(`Payment failed. Status: ${paymentIntent.status}`);
         }
       } catch (error) {
-        console.error('Payment error:', error);
-        setCardError(error.message || 'An unexpected error occurred during payment');
+        setCardError(error.message || 'Payment failed');
         toast.error('Payment failed. Please try again');
       } finally {
         paymentInProgress.current = false;
         setLoading(false);
       }
     },
-    [stripe, elements, clientSecret, navigate, token, user?.existingUser, courseId]
+    [stripe, elements, clientSecret, navigate, token, courseId, user?.existingUser?._id]
   );
 
   const handleOtherPaymentMethod = () => {
