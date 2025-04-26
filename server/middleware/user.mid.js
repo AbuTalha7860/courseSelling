@@ -1,6 +1,6 @@
-const jwt = require("jsonwebtoken");
-const config = require("../config");
-const User = require("../models/user.model"); // Adjust the path as needed
+import jwt from "jsonwebtoken";
+import config from "../config.js";
+import { User } from "../models/user.model.js"; // Adjust path as needed
 
 const userMiddleware = async (req, res, next) => {
   try {
@@ -15,7 +15,6 @@ const userMiddleware = async (req, res, next) => {
     const decoded = jwt.verify(token, config.JWT_USER_PASSWORD);
     console.log("Decoded token in userMiddleware:", decoded);
 
-    // Fetch user from database
     const user = await User.findById(decoded.id);
     console.log("Fetched user from DB in userMiddleware:", user);
 
@@ -24,7 +23,7 @@ const userMiddleware = async (req, res, next) => {
       return res.status(401).json({ errors: "User not found" });
     }
 
-    req.user = user; // Set req.user to the full user document
+    req.user = user;
     console.log("Set req.user in userMiddleware:", req.user);
     next();
   } catch (error) {
@@ -33,4 +32,4 @@ const userMiddleware = async (req, res, next) => {
   }
 };
 
-module.exports = userMiddleware;
+export default userMiddleware;
