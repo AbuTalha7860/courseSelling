@@ -18,14 +18,14 @@ function Purchases() {
 
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const token = user?.token || (document.cookie.split('; ').find(row => row.startsWith('jwt='))?.split('=')[1]) || null;
+  const token = user?.token || null;
 
   console.log('User object:', user);
   console.log('Token:', token);
   console.log('Purchases:', purchases);
 
   useEffect(() => {
-    if (!token && !document.cookie.includes('jwt')) {
+    if (!token) {
       setIsLoggedIn(false);
       setErrorMessage('Please log in to view your purchases.');
       navigate('/login');
@@ -51,9 +51,15 @@ function Purchases() {
       setErrorMessage('');
     } catch (error) {
       console.error('Error fetching purchases:', error.response?.data || error.message);
-      const errorMsg = error.response?.data?.errors || 'Failed to fetch purchase data';
-      setErrorMessage(errorMsg);
-      toast.error(errorMsg);
+      if (error.response?.data?.errors === 'Invalid authorization or expired token') {
+        localStorage.removeItem('user');
+        setErrorMessage('Session expired. Please log in again.');
+        navigate('/login');
+      } else {
+        const errorMsg = error.response?.data?.errors || 'Failed to fetch purchase data';
+        setErrorMessage(errorMsg);
+        toast.error(errorMsg);
+      }
       setPurchases([]);
     } finally {
       setLoading(false);
@@ -61,7 +67,7 @@ function Purchases() {
   };
 
   useEffect(() => {
-    if (token || document.cookie.includes('jwt')) {
+    if (token) {
       fetchPurchases();
     }
   }, [token]);
@@ -178,9 +184,7 @@ function Purchases() {
                     className="rounded-lg w-full h-48 object-cover"
                     src={purchase.image?.url || 'https://placehold.co/200'}
                     alt={purchase.title || 'Course image'}
-                    onError={(e) => {
-                      e.target.src = 'https://placehold.co/200';
-                    }}
+                    onError={(e) => { e.target.src = 'https://placehold.co/200'; }}
                   />
                   <div className="text-center">
                     <h3 className="text-lg font-bold">{purchase.title || 'Untitled Course'}</h3>

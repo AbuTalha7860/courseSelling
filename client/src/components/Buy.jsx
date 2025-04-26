@@ -18,7 +18,7 @@ function Buy() {
   const [cardError, setCardError] = useState('');
 
   const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const token = user?.token || (document.cookie.split('; ').find(row => row.startsWith('jwt='))?.split('=')[1]) || null;
+  const token = user?.token || null;
 
   const stripe = useStripe();
   const elements = useElements();
@@ -37,16 +37,9 @@ function Buy() {
     try {
       console.log(`Fetching buy course data for courseId: ${courseId}`);
       const user = JSON.parse(localStorage.getItem('user') || '{}');
-      let token = user?.token; // Use token from localStorage first
+      let token = user?.token;
       if (!token) {
-        // Fallback to cookie if localStorage is empty
-        token = document.cookie.split('; ').find(row => row.startsWith('jwt='))?.split('=')[1];
-        if (token) {
-          localStorage.setItem('user', JSON.stringify({ token, existingUser: { _id: req.user.id } })); // Sync localStorage
-        }
-      }
-      if (!token) {
-        toast.error('Please log in to continue');
+        toast.error('No token found. Please log in.');
         window.location.href = '/login';
         return;
       }
@@ -124,6 +117,8 @@ function Buy() {
         }
 
         if (paymentIntent.status === 'succeeded') {
+          const user = JSON.parse(localStorage.getItem('user') || '{}');
+          const token = user?.token;
           const paymentInfo = {
             paymentId: paymentIntent.id,
             courseId,
@@ -133,7 +128,7 @@ function Buy() {
           const confirmResponse = await axios.post(
             `${BACKEND_URL}/courses/confirm`,
             paymentInfo,
-            { headers: { Authorization: `Bearer ${token || document.cookie.split('; ').find(row => row.startsWith('jwt='))?.split('=')[1]}` }, withCredentials: true }
+            { headers: { Authorization: `Bearer ${token}` }, withCredentials: true }
           );
           toast.success('Payment Successful');
           navigate('/purchases');
@@ -148,7 +143,7 @@ function Buy() {
         setLoading(false);
       }
     },
-    [stripe, elements, clientSecret, navigate, token, courseId, user?.existingUser?._id]
+    [stripe, elements, clientSecret, navigate, courseId]
   );
 
   const handleOtherPaymentMethod = () => {
