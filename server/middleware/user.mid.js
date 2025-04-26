@@ -1,26 +1,36 @@
-import jwt from 'jsonwebtoken';
-import config from '../config.js';
+const jwt = require("jsonwebtoken");
+const config = require("../config");
+const User = require("../models/user.model"); // Adjust the path as needed
 
-function userMiddleware(req, res, next) {
-    const authHeader = req.headers.authorization;
+const userMiddleware = async (req, res, next) => {
+  try {
+    const token = req.cookies.jwt || req.headers.authorization?.split(" ")[1];
+    console.log("Extracted token in userMiddleware:", token);
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        console.log('No valid authorization header:', authHeader);
-        return res.status(401).json({ errors: 'No token provided' });
+    if (!token) {
+      console.log("No token provided in request");
+      return res.status(401).json({ errors: "No token provided" });
     }
 
-    const token = authHeader.split(' ')[1];
-    console.log('Extracted token:', token ? token.slice(0, 10) + '...' : 'null');
+    const decoded = jwt.verify(token, config.JWT_USER_PASSWORD);
+    console.log("Decoded token in userMiddleware:", decoded);
 
-    try {
-        const decoded = jwt.verify(token, config.JWT_USER_PASSWORD);
-        console.log('Decoded token:', decoded);
-        req.user = decoded; // Use req.user instead of req.userId for consistency
-        next();
-    } catch (error) {
-        console.error('Token verification error:', error.message, error.stack);
-        return res.status(401).json({ error: 'Invalid authorization or expired token' });
+    // Fetch user from database
+    const user = await User.findById(decoded.id);
+    console.log("Fetched user from DB in userMiddleware:", user);
+
+    if (!user) {
+      console.log("User not found in database for ID:", decoded.id);
+      return res.status(401).json({ errors: "User not found" });
     }
-}
 
-export default userMiddleware;
+    req.user = user; // Set req.user to the full user document
+    console.log("Set req.user in userMiddleware:", req.user);
+    next();
+  } catch (error) {
+    console.error("Token verification error in userMiddleware:", error.message, error.stack);
+    return res.status(401).json({ errors: "Invalid authorization or expired token" });
+  }
+};
+
+module.exports = userMiddleware;

@@ -80,12 +80,22 @@ export const logout = (req, res) => {
 
 export const getPurchases = async (req, res) => {
   try {
-    const userId = req.user.id;
+    console.log("Handling /user/purchases - req.user:", req.user, "req.user._id:", req.user?._id);
+
+    if (!req.user || !req.user._id) {
+      console.log("req.user or req.user._id is null/undefined:", req.user);
+      return res.status(401).json({ errors: "User not authenticated" });
+    }
+
+    const userId = req.user._id; // Use _id to match MongoDB document
+    console.log("Fetching purchases for userId:", userId);
     const purchases = await Purchase.find({ userId }).populate('courseId');
     console.log('Raw purchases data:', purchases);
+
     if (!purchases.length) {
       return res.status(200).json({ purchasedCourses: [] });
     }
+
     res.json({
       message: 'Purchased courses retrieved successfully',
       purchasedCourses: purchases.map(p => ({
@@ -99,6 +109,9 @@ export const getPurchases = async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching purchases:', error.stack);
-    res.status(500).json({ errors: 'Internal Server Error', details: error.message });
+    res.status(500).json({
+      errors: 'Internal Server Error',
+      details: error.message,
+    });
   }
 };

@@ -13,12 +13,12 @@ import { BACKEND_URL } from '../utils/utils';
 const isTokenExpired = (token) => {
   try {
     const payload = JSON.parse(atob(token.split('.')[1]));
-    const currentTime = Math.floor(Date.now() / 1000); // Current time in seconds
+    const currentTime = Math.floor(Date.now() / 1000);
     console.log('Token exp:', payload.exp, 'Current time:', currentTime);
     return payload.exp < currentTime;
   } catch (error) {
     console.error('Error decoding token:', error);
-    return true; // Assume expired if decoding fails
+    return true;
   }
 };
 
@@ -54,6 +54,7 @@ function Purchases() {
       if (!token || isTokenExpired(token)) {
         throw new Error('Token expired');
       }
+      console.log('Sending request to /user/purchases with token:', token);
       const response = await axios.get(`${BACKEND_URL}/user/purchases`, {
         headers: { Authorization: `Bearer ${token}` },
         withCredentials: true,
@@ -67,15 +68,16 @@ function Purchases() {
       setPurchases(courseData);
       setErrorMessage('');
     } catch (error) {
-      console.error('Error fetching purchases:', error.response?.data || error.message);
+      console.error('Error fetching purchases - Full error:', error.response?.data || error.message, error.stack);
       if (error.response?.data?.errors === 'Invalid authorization or expired token' || error.message === 'Token expired') {
         localStorage.removeItem('user');
         setErrorMessage('Session expired. Please log in again.');
         navigate('/login');
       } else {
         const errorMsg = error.response?.data?.errors || 'Failed to fetch purchase data';
-        setErrorMessage(errorMsg);
-        toast.error(errorMsg);
+        const details = error.response?.data?.details || 'No details available';
+        setErrorMessage(`${errorMsg} - ${details}`);
+        toast.error(`${errorMsg} - ${details}`);
       }
       setPurchases([]);
     } finally {
