@@ -6,6 +6,19 @@ import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useElements, useStripe } from '@stripe/react-stripe-js';
 import { BACKEND_URL } from '../utils/utils';
 
+// Helper function to check if token is expired
+const isTokenExpired = (token) => {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const currentTime = Math.floor(Date.now() / 1000);
+    console.log('Token exp:', payload.exp, 'Current time:', currentTime);
+    return payload.exp < currentTime;
+  } catch (error) {
+    console.error('Error decoding token:', error);
+    return true;
+  }
+};
+
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 function Buy() {
@@ -27,8 +40,9 @@ function Buy() {
   const paymentInProgress = useRef(false);
 
   useEffect(() => {
-    if (!token && !document.cookie.includes('jwt')) {
+    if (!token || isTokenExpired(token)) {
       toast.error('Please log in to purchase the course.');
+      localStorage.removeItem('user');
       navigate('/login');
     }
   }, [token, navigate]);
@@ -38,8 +52,9 @@ function Buy() {
       console.log(`Fetching buy course data for courseId: ${courseId}`);
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       let token = user?.token;
-      if (!token) {
-        toast.error('No token found. Please log in.');
+      if (!token || isTokenExpired(token)) {
+        toast.error('No valid token found. Please log in.');
+        localStorage.removeItem('user');
         window.location.href = '/login';
         return;
       }
@@ -74,7 +89,7 @@ function Buy() {
         setError('Failed to load course data');
       }
     };
-    if ((token || document.cookie.includes('jwt')) && user?.existingUser?._id) {
+    if (token && !isTokenExpired(token) && user?.existingUser?._id) {
       fetchData();
     } else {
       setError('Please log in to purchase the course.');

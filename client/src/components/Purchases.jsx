@@ -9,6 +9,19 @@ import { HiMenu, HiX } from 'react-icons/hi';
 import { Link, useNavigate } from 'react-router-dom';
 import { BACKEND_URL } from '../utils/utils';
 
+// Helper function to check if token is expired
+const isTokenExpired = (token) => {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const currentTime = Math.floor(Date.now() / 1000); // Current time in seconds
+    console.log('Token exp:', payload.exp, 'Current time:', currentTime);
+    return payload.exp < currentTime;
+  } catch (error) {
+    console.error('Error decoding token:', error);
+    return true; // Assume expired if decoding fails
+  }
+};
+
 function Purchases() {
   const [purchases, setPurchases] = useState([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -25,9 +38,10 @@ function Purchases() {
   console.log('Purchases:', purchases);
 
   useEffect(() => {
-    if (!token) {
+    if (!token || isTokenExpired(token)) {
       setIsLoggedIn(false);
-      setErrorMessage('Please log in to view your purchases.');
+      setErrorMessage('Session expired or invalid. Please log in again.');
+      localStorage.removeItem('user');
       navigate('/login');
     } else {
       setIsLoggedIn(true);
@@ -37,6 +51,9 @@ function Purchases() {
   const fetchPurchases = async () => {
     try {
       setLoading(true);
+      if (!token || isTokenExpired(token)) {
+        throw new Error('Token expired');
+      }
       const response = await axios.get(`${BACKEND_URL}/user/purchases`, {
         headers: { Authorization: `Bearer ${token}` },
         withCredentials: true,
@@ -51,7 +68,7 @@ function Purchases() {
       setErrorMessage('');
     } catch (error) {
       console.error('Error fetching purchases:', error.response?.data || error.message);
-      if (error.response?.data?.errors === 'Invalid authorization or expired token') {
+      if (error.response?.data?.errors === 'Invalid authorization or expired token' || error.message === 'Token expired') {
         localStorage.removeItem('user');
         setErrorMessage('Session expired. Please log in again.');
         navigate('/login');
@@ -67,7 +84,7 @@ function Purchases() {
   };
 
   useEffect(() => {
-    if (token) {
+    if (token && !isTokenExpired(token)) {
       fetchPurchases();
     }
   }, [token]);
@@ -79,7 +96,7 @@ function Purchases() {
       });
       toast.success(response.data.message || 'Logged out successfully');
       localStorage.removeItem('user');
-      document.cookie = 'jwt=; Max-Age=-1; path=/;'; // Clear cookie
+      document.cookie = 'jwt=; Max-Age=-1; path=/;';
       setIsLoggedIn(false);
       navigate('/login');
     } catch (error) {
