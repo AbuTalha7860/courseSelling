@@ -158,30 +158,30 @@ export const getCourseById = async (req, res) => {
 };
 
 export const confirmPurchase = async (req, res) => {
-  const userId = req.user.id; // Updated to match userMiddleware
-  const { paymentId, courseId, amount, status } = req.body;
   try {
-    const order = await Order.findOne({ userId, courseId });
-    if (!order) {
-      return res.status(404).json({ errors: 'Order not found' });
+    const userId = req.user._id || req.user.id;
+    const { paymentIntentId, courseId } = req.body;
+
+    // Verify payment with Stripe
+    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+    if (paymentIntent.status !== 'succeeded') {
+      return res.status(400).json({ error: 'Payment not successful' });
     }
 
-    order.paymentId = paymentId;
-    order.amount = amount;
-    order.status = status;
-    await order.save();
+    // Check if purchase already exists
+    const existingPurchase = await Purchase.findOne({ userId, courseId });
+    if (existingPurchase) {
+      return res.status(400).json({ error: 'Course already purchased' });
+    }
 
-    const newPurchase = new Purchase({ userId, courseId });
-    await newPurchase.save();
+    // Only now create the Purchase
+    const purchase = new Purchase({ userId, courseId, status: 'completed' });
+    await purchase.save();
 
-    res.status(200).json({
-      message: 'Order confirmed successfully',
-      order,
-      purchase: newPurchase,
-    });
+    res.status(201).json({ message: 'Purchase confirmed', purchase });
   } catch (error) {
-    console.error('Order confirmation error:', error);
-    return res.status(500).json({ errors: 'Server Error', details: error.message });
+    console.error('Error in confirmPurchase:', error.stack);
+    res.status(500).json({ errors: 'Internal Server Error', details: error.message });
   }
 };
 
@@ -229,10 +229,7 @@ export const buyCourse = async (req, res) => {
     });
     console.log('Payment Intent created:', paymentIntent);
 
-    const purchase = new Purchase({ userId, courseId, status: 'pending' });
-    await purchase.save();
-    console.log('Purchase saved:', purchase);
-
+    // DO NOT create a Purchase here!
     res.json({ course, clientSecret: paymentIntent.client_secret });
   } catch (error) {
     console.error('Error in buyCourse:', error.stack);

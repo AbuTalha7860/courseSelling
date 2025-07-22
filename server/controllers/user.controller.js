@@ -80,35 +80,27 @@ export const logout = (req, res) => {
 
 export const getPurchases = async (req, res) => {
   try {
-    console.log("Handling /user/purchases - req.user:", req.user, "req.user._id:", req.user?._id);
-
     if (!req.user || !req.user._id) {
-      console.log("req.user or req.user._id is null/undefined:", req.user);
       return res.status(401).json({ errors: "User not authenticated" });
     }
 
     const userId = req.user._id;
-    console.log("Fetching purchases for userId:", userId);
-    const purchases = await Purchase.find({ userId }).populate('courseId');
-    console.log('Raw purchases data:', purchases);
-
-    if (!purchases.length) {
-      return res.status(200).json({ purchasedCourses: [] });
-    }
+    const purchases = await Purchase.find({ userId, status: 'completed' }).populate('courseId');
+    // Defensive: filter out any purchase with missing or null courseId or missing _id
+    const validPurchases = purchases.filter(p => p.courseId && p.courseId._id);
 
     res.json({
       message: 'Purchased courses retrieved successfully',
-      purchasedCourses: purchases.map(p => ({
+      purchasedCourses: validPurchases.map(p => ({
         _id: p.courseId._id,
         title: p.courseId.title,
         description: p.courseId.description,
         price: p.courseId.price,
         image: p.courseId.image,
       })),
-      rawPurchases: purchases,
+      rawPurchases: validPurchases,
     });
   } catch (error) {
-    console.error('Error fetching purchases:', error.stack);
     res.status(500).json({
       errors: 'Internal Server Error',
       details: error.message,

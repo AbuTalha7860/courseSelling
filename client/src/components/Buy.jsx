@@ -5,6 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useElements, useStripe } from '@stripe/react-stripe-js';
 import { BACKEND_URL } from '../utils/utils';
+import Modal from 'react-modal';
 
 // Helper function to check if token is expired
 const isTokenExpired = (token) => {
@@ -29,6 +30,7 @@ function Buy() {
   const [clientSecret, setClientSecret] = useState('');
   const [error, setError] = useState('');
   const [cardError, setCardError] = useState('');
+  const [showAlreadyPurchasedModal, setShowAlreadyPurchasedModal] = useState(false);
 
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const token = user?.token || null;
@@ -72,6 +74,11 @@ function Buy() {
         localStorage.removeItem('user');
         toast.error('Session expired. Please log in again.');
         window.location.href = '/login';
+      } else if (error.response?.data?.errors === 'Course already purchased') {
+        setShowAlreadyPurchasedModal(true);
+        setTimeout(() => {
+          window.location.href = '/purchases';
+        }, 2500);
       } else {
         toast.error(error.response?.data?.errors || 'Failed to fetch buy course data');
       }
@@ -167,6 +174,31 @@ function Buy() {
 
   return (
     <>
+      <Modal
+        isOpen={showAlreadyPurchasedModal}
+        onRequestClose={() => {
+          setShowAlreadyPurchasedModal(false);
+          window.location.href = '/purchases';
+        }}
+        contentLabel="Already Purchased"
+        ariaHideApp={false}
+        style={{
+          overlay: { backgroundColor: 'rgba(0,0,0,0.4)' },
+          content: { maxWidth: '400px', margin: 'auto', textAlign: 'center', borderRadius: '12px' }
+        }}
+      >
+        <h2 style={{ color: '#e53e3e', marginBottom: '16px' }}>Already Purchased</h2>
+        <p style={{ marginBottom: '24px' }}>You have already purchased this course! Redirecting to your purchases...</p>
+        <button
+          onClick={() => {
+            setShowAlreadyPurchasedModal(false);
+            window.location.href = '/purchases';
+          }}
+          style={{ background: '#6366f1', color: 'white', padding: '8px 24px', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
+        >
+          Go to Purchases
+        </button>
+      </Modal>
       {error ? (
         <div className="flex justify-center items-center min-h-screen bg-gray-100">
           <div className="bg-red-100 text-red-700 px-6 py-4 rounded-lg shadow-md max-w-md w-full">
