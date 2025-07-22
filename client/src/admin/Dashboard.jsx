@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import logo from "../../public/logo.webp";
 import toast from "react-hot-toast";
@@ -6,6 +6,22 @@ import axios from "axios";
 import { BACKEND_URL } from "../utils/utils";
 // import { BACKEND_URL } from "../utils/utils";
 function Dashboard() {
+  const [stats, setStats] = useState({ courses: 0, users: 0, purchases: 0 });
+  const [loadingStats, setLoadingStats] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await axios.get(`${BACKEND_URL}/admin/dashboard-stats`, { withCredentials: true });
+        setStats(res.data);
+      } catch (err) {
+        toast.error("Failed to load dashboard stats");
+      } finally {
+        setLoadingStats(false);
+      }
+    };
+    fetchStats();
+  }, []);
   const handleLogout = async () => {
     try {
       const response = await axios.get(`${BACKEND_URL}/admin/logout`, {
@@ -21,7 +37,7 @@ function Dashboard() {
   return (
     <div className="flex h-screen">
       {/* Sidebar */}
-      <div className="w-64 bg-gray-100 p-5">
+      <div className="w-64 bg-gray-100 p-5 flex-shrink-0">
         <div className="flex items-center flex-col mb-10">
           <img src={logo} alt="Profile" className="rounded-full h-20 w-20" />
           <h2 className="text-lg font-semibold mt-4">I'm Admin</h2>
@@ -53,8 +69,30 @@ function Dashboard() {
           </Link>
         </nav>
       </div>
-      <div className="flex h-screen items-center justify-center ml-[40%]">
-        Welcome!!!
+      {/* Main Content */}
+      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-100 min-h-screen p-4">
+        <div className="bg-white bg-opacity-95 rounded-2xl shadow-2xl p-10 md:p-14 flex flex-col items-center max-w-lg w-full border border-gray-200 transition-all duration-300">
+          <img src={logo} alt="Admin" className="w-16 h-16 rounded-full mb-4 shadow" />
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2 text-center">Welcome, Admin!</h1>
+          <p className="text-gray-600 text-center mb-6 text-base md:text-lg">You have full control over courses, users, and platform content. Use the sidebar to manage your dashboard efficiently.</p>
+          <div className="flex flex-wrap justify-center gap-8 mt-2 w-full">
+            <div className="flex flex-col items-center">
+              <span className="text-2xl md:text-3xl font-bold text-blue-600">🎓</span>
+              <span className="text-sm text-gray-500 mt-1">Manage Courses</span>
+              <span className="text-lg font-semibold text-blue-700 mt-1">{loadingStats ? '...' : stats.courses}</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <span className="text-2xl md:text-3xl font-bold text-green-600">🛠️</span>
+              <span className="text-sm text-gray-500 mt-1">Create Content</span>
+              <span className="text-lg font-semibold text-green-700 mt-1">{loadingStats ? '...' : stats.purchases}</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <span className="text-2xl md:text-3xl font-bold text-orange-500">👥</span>
+              <span className="text-sm text-gray-500 mt-1">View Users</span>
+              <span className="text-lg font-semibold text-orange-600 mt-1">{loadingStats ? '...' : stats.users}</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

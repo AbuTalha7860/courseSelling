@@ -3,6 +3,9 @@ import bcrypt from 'bcryptjs';
 import { z } from "zod";
 import jwt from 'jsonwebtoken';
 import config from "../config.js";
+import { Course } from "../models/course.model.js";
+import { User } from "../models/user.model.js";
+import { Purchase } from "../models/purchase.model.js";
 
 export const signup = async (req, res) => {
     const { firstName, lastName, email, password } = req.body;
@@ -94,4 +97,21 @@ export const logout = (req, res) => {
     
     res.clearCookie("jwt");
     res.send({ msg: 'Logged out successfully' });
+};
+
+export const getDashboardStats = async (req, res) => {
+    try {
+        const [courseCount, userCount, purchaseCount] = await Promise.all([
+            Course.countDocuments(),
+            User.countDocuments(),
+            Purchase.countDocuments({ status: 'completed' })
+        ]);
+        res.json({
+            courses: courseCount,
+            users: userCount,
+            purchases: purchaseCount
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch dashboard stats', details: error.message });
+    }
 };

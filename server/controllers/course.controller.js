@@ -77,7 +77,9 @@ export const updateCourse = async (req, res) => {
 
     if (course.creatorId.toString() !== adminId) {
       console.log('Unauthorized: Admin ID mismatch:', adminId, 'Course creator:', course.creatorId);
-      return res.status(403).json({ error: "can't update, created by other admin" });
+      return res.status(403).json({
+        error: "This course was created by another admin. You cannot update or delete it."
+      });
     }
 
     const { title, description, price } = req.body;
@@ -118,7 +120,9 @@ export const deleteCourse = async (req, res) => {
 
     if (course.creatorId.toString() !== adminId) {
       console.log('Unauthorized: Admin ID mismatch:', adminId, 'Course creator:', course.creatorId);
-      return res.status(403).json({ errors: "can't delete, created by other admin" });
+      return res.status(403).json({
+        error: "This course was created by another admin. You cannot update or delete it."
+      });
     }
 
     await Course.findByIdAndDelete(courseId);

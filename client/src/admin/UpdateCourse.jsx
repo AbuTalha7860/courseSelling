@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { BACKEND_URL } from '../utils/utils';
+import Modal from 'react-modal';
 
 function UpdateCourse() {
     const [title, setTitle] = useState("");
@@ -12,6 +13,7 @@ function UpdateCourse() {
     const [imagePreview, setImagePreview] = useState("");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [adminError, setAdminError] = useState(null);
 
     const navigate = useNavigate();
     const { id } = useParams();
@@ -111,7 +113,12 @@ function UpdateCourse() {
             navigate("/admin/our-courses");
         } catch (error) {
             console.error("Error updating course:", error);
-            toast.error(error.response?.data?.errors || "Error updating course");
+            const backendMsg = error.response?.data?.error || error.response?.data?.errors;
+            if (backendMsg && backendMsg.includes('created by another admin')) {
+                setAdminError(backendMsg);
+            } else {
+                toast.error(backendMsg || "Error updating course");
+            }
         }
     };
 
@@ -136,6 +143,43 @@ function UpdateCourse() {
             <div className="min-h-screen flex items-center justify-center bg-gray-100">
                 <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
             </div>
+        );
+    }
+
+    if (adminError) {
+        return (
+            <Modal
+                isOpen={true}
+                onRequestClose={() => setAdminError(null)}
+                contentLabel="Admin Error"
+                ariaHideApp={false}
+                style={{
+                    overlay: { backgroundColor: 'rgba(30,41,59,0.6)' },
+                    content: {
+                        maxWidth: '350px',
+                        margin: 'auto',
+                        textAlign: 'center',
+                        borderRadius: '16px',
+                        padding: '32px',
+                        background: '#fff',
+                        boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.18)',
+                        border: 'none',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                    }
+                }}
+            >
+                <h2 className="text-xl font-bold text-red-600 mb-4">Permission Denied</h2>
+                <p className="mb-6 text-gray-700">{adminError}</p>
+                <button
+                    onClick={() => { setAdminError(null); navigate("/admin/our-courses"); }}
+                    className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                >
+                    Back to Courses
+                </button>
+            </Modal>
         );
     }
 

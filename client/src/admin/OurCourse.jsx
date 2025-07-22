@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { BACKEND_URL } from '../utils/utils';
+import Modal from 'react-modal';
 
 const OurCourse = () => {
     const [courses, setCourses] = useState([]);
     const navigate = useNavigate();
     const admin = JSON.parse(localStorage.getItem('admin')) || {};
     const token = admin?.token || null;
+    const [adminError, setAdminError] = useState(null);
 
     const fetchCourses = async () => {
         console.log('OurCourse component mounted');
@@ -41,6 +43,12 @@ const OurCourse = () => {
             fetchCourses(); // Refresh the course list
         } catch (error) {
             console.error('Error deleting course:', error);
+            const backendMsg = error.response?.data?.error || error.response?.data?.errors;
+            if (backendMsg && backendMsg.includes('created by another admin')) {
+                setAdminError(backendMsg);
+            } else {
+                alert(backendMsg || 'Error deleting course');
+            }
         }
     };
 
@@ -94,6 +102,40 @@ const OurCourse = () => {
                     ))}
                 </div>
             </div>
+            {adminError && (
+                <Modal
+                    isOpen={true}
+                    onRequestClose={() => setAdminError(null)}
+                    contentLabel="Admin Error"
+                    ariaHideApp={false}
+                    style={{
+                        overlay: { backgroundColor: 'rgba(30,41,59,0.6)' },
+                        content: {
+                            maxWidth: '350px',
+                            margin: 'auto',
+                            textAlign: 'center',
+                            borderRadius: '16px',
+                            padding: '32px',
+                            background: '#fff',
+                            boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.18)',
+                            border: 'none',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        }
+                    }}
+                >
+                    <h2 className="text-xl font-bold text-red-600 mb-4">Permission Denied</h2>
+                    <p className="mb-6 text-gray-700">{adminError}</p>
+                    <button
+                        onClick={() => setAdminError(null)}
+                        className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                    >
+                        Close
+                    </button>
+                </Modal>
+            )}
         </div>
     );
 };
