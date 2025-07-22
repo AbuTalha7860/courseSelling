@@ -8,6 +8,7 @@ import Buy from './components/Buy';
 import Courses from './components/Courses';
 import Purchases from './components/Purchases';
 import ErrorBoundary from './components/ErrorBoundary';
+import Settings from './components/Settings';
 
 import AdminSignup from './admin/AdminSignup';
 import AdminLogin from './admin/AdminLogin';
@@ -34,6 +35,7 @@ const App = () => {
 
                 <Route path='/courses' element={<Courses />} />
                 <Route path='/purchases' element={user ? <Purchases /> : <Navigate to={"/login"} />} />
+                <Route path='/settings' element={user ? <Settings /> : <Navigate to={"/login"} />} />
 
                 {/* Admin Routes */}
                 <Route path='/admin/signup' element={<AdminSignup />} />

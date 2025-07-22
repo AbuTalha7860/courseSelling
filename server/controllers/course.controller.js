@@ -161,15 +161,16 @@ export const confirmPurchase = async (req, res) => {
   try {
     const userId = req.user._id || req.user.id;
     const { paymentIntentId, courseId } = req.body;
+    console.log('Confirming purchase:', { userId, paymentIntentId, courseId });
 
-    // Verify payment with Stripe
+    // Only retrieve the PaymentIntent, do not confirm it again
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
     if (paymentIntent.status !== 'succeeded') {
       return res.status(400).json({ error: 'Payment not successful' });
     }
 
     // Check if purchase already exists
-    const existingPurchase = await Purchase.findOne({ userId, courseId });
+    const existingPurchase = await Purchase.findOne({ userId, courseId, status: 'completed' });
     if (existingPurchase) {
       return res.status(400).json({ error: 'Course already purchased' });
     }
@@ -180,7 +181,7 @@ export const confirmPurchase = async (req, res) => {
 
     res.status(201).json({ message: 'Purchase confirmed', purchase });
   } catch (error) {
-    console.error('Error in confirmPurchase:', error.stack);
+    console.error('Error in confirmPurchase:', error.stack, error.message);
     res.status(500).json({ errors: 'Internal Server Error', details: error.message });
   }
 };
@@ -204,7 +205,8 @@ export const buyCourse = async (req, res) => {
       return res.status(404).json({ errors: 'Course not found' });
     }
 
-    const existingPurchase = await Purchase.findOne({ userId, courseId });
+    // Only block if a completed purchase exists
+    const existingPurchase = await Purchase.findOne({ userId, courseId, status: 'completed' });
     if (existingPurchase) {
       return res.status(400).json({ errors: 'Course already purchased' });
     }

@@ -8,10 +8,13 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import toast from 'react-hot-toast';
 import { BACKEND_URL } from '../utils/utils';
+import Modal from 'react-modal';
+import { FaUser, FaUserShield } from 'react-icons/fa';
 
 const Home = () => {
   const [courses, setCourses] = useState([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   useState(() => {
     const token = localStorage.getItem('user')
@@ -105,10 +108,13 @@ const Home = () => {
               </>
             ) : (
               <>
-                <Link to={'/login'} className='bg-transparent text-white py-2 px-4 border border-white rounded'>
+                <button
+                  onClick={() => setShowLoginModal(true)}
+                  className='bg-transparent text-white py-2 px-4 border border-white rounded hover:bg-orange-500 hover:text-white transition-all duration-300'
+                >
                   Login
-                </Link>
-                <Link to={'/signup'} className='bg-transparent text-white py-2 px-4 border border-white rounded'>
+                </button>
+                <Link to={'/signup'} className='bg-transparent text-white py-2 px-4 border border-white rounded hover:bg-orange-500 hover:text-white transition-all duration-300'>
                   Signup
                 </Link>
               </>
@@ -116,6 +122,56 @@ const Home = () => {
           </div>
 
         </header>
+
+        {/* Login Modal */}
+        <Modal
+          isOpen={showLoginModal}
+          onRequestClose={() => setShowLoginModal(false)}
+          contentLabel="Login Options"
+          ariaHideApp={false}
+          style={{
+            overlay: { backgroundColor: 'rgba(30,41,59,0.6)' },
+            content: {
+              width: '300px',
+              height: '300px',
+              margin: 'auto',
+              textAlign: 'center',
+              borderRadius: '18px',
+              padding: '24px',
+              background: '#181f2a',
+              boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.18)',
+              border: 'none',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }
+          }}
+        >
+          <h2 className='text-xl font-extrabold mb-4 text-orange-500 tracking-tight'>Login As</h2>
+          <div className='flex flex-col gap-3 mb-1 w-full'>
+            <Link
+              to='/login'
+              className='flex items-center justify-center gap-2 bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 transition-all duration-300 shadow-lg text-base focus:outline-none focus:ring-2 focus:ring-blue-400 w-full'
+              onClick={() => setShowLoginModal(false)}
+            >
+              <FaUser className='text-lg' /> User Login
+            </Link>
+            <Link
+              to='/admin/login'
+              className='flex items-center justify-center gap-2 bg-green-600 text-white py-2 rounded-lg font-semibold hover:bg-green-800 transition-all duration-300 shadow-lg text-base focus:outline-none focus:ring-2 focus:ring-green-400 w-full'
+              onClick={() => setShowLoginModal(false)}
+            >
+              <FaUserShield className='text-lg' /> Admin Login
+            </Link>
+          </div>
+          <button
+            onClick={() => setShowLoginModal(false)}
+            className='mt-1 text-gray-400 hover:text-white underline text-xs transition-all duration-200'
+          >
+            Cancel
+          </button>
+        </Modal>
 
         {/* Main section */}
         <section className='text-center py-20 flex-1'>

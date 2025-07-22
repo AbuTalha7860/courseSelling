@@ -142,7 +142,7 @@ function Buy() {
           const user = JSON.parse(localStorage.getItem('user') || '{}');
           const token = user?.token;
           const paymentInfo = {
-            paymentId: paymentIntent.id,
+            paymentIntentId: paymentIntent.id, // Use paymentIntentId to match backend
             courseId,
             amount: paymentIntent.amount / 100,
             status: paymentIntent.status,

@@ -12,6 +12,7 @@ import logo from "../../public/logo.webp";
 import toast from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
 import { BACKEND_URL } from "../utils/utils";
+import Loader from './Loader';
 
 const Courses = () => {
     const [courses, setCourses] = useState([]);
@@ -148,46 +149,45 @@ const Courses = () => {
                 {/* Vertically Scrollable Courses Section */}
                 <div className="overflow-y-auto h-[75vh]">
                     {loading ? (
-                        <p className="text-center text-gray-500">Loading...</p>
+                        <Loader />
                     ) : courses.length === 0 ? (
-                        // Check if courses array is empty
                         <p className="text-center text-gray-500">
                             No course posted yet by admin
                         </p>
                     ) : (
-                        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
+                        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-8">
                             {courses.map((course) => (
                                 <div
                                     key={course._id}
-                                    className="border border-gray-200 rounded-lg p-4 shadow-sm"
+                                    className="bg-white border border-gray-200 rounded-2xl p-5 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-2xl flex flex-col justify-between"
                                 >
                                     {course.image?.url ? (
                                         <img
                                             src={course.image.url}
                                             alt={course.title}
-                                            className="rounded mb-4"
+                                            className="rounded-xl mb-4 h-48 w-full object-cover shadow-sm transition-all duration-300"
                                         />
                                     ) : (
-                                        <div className="rounded mb-4 bg-gray-200 h-40 flex items-center justify-center">
+                                        <div className="rounded-xl mb-4 bg-gray-200 h-48 flex items-center justify-center text-gray-400 text-lg">
                                             No Image Available
                                         </div>
                                     )}
-                                    <h2 className="font-bold text-lg mb-2">{course.title}</h2>
-                                    <p className="text-gray-600 mb-4">
+                                    <h2 className="font-bold text-xl mb-2 text-blue-900 transition-all duration-300">{course.title}</h2>
+                                    <p className="text-gray-600 mb-4 text-sm transition-all duration-300">
                                         {course.description.length > 100
                                             ? `${course.description.slice(0, 100)}...`
                                             : course.description}
                                     </p>
                                     <div className="flex justify-between items-center mb-4">
-                                        <span className="font-bold text-xl">
-                                            ₹{course.price}{" "}
-                                            <span className="text-gray-500 line-through">5999</span>
+                                        <span className="font-bold text-2xl text-orange-600 transition-all duration-300">
+                                            ₹{course.price}
                                         </span>
-                                        <span className="text-green-600">20% off</span>
+                                        <span className="text-gray-400 line-through text-lg transition-all duration-300">₹5999</span>
+                                        <span className="text-green-600 font-semibold ml-2 transition-all duration-300">20% off</span>
                                     </div>
                                     <Link
                                         to={`/buy/${course._id}`}
-                                        className="bg-orange-500 w-full text-white px-4 py-2 rounded-lg hover:bg-blue-900 duration-300"
+                                        className="bg-gradient-to-r from-orange-500 to-orange-700 w-full text-white px-4 py-2 rounded-lg shadow-md hover:from-blue-600 hover:to-blue-900 hover:shadow-lg transition-all duration-300 text-center font-semibold tracking-wide mt-auto focus:outline-none focus:ring-2 focus:ring-orange-400"
                                     >
                                         Buy Now
                                     </Link>
