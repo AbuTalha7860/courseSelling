@@ -150,11 +150,17 @@ export const getCourseById = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(courseId)) {
       return res.status(400).json({ errors: 'Invalid course ID' });
     }
-    const course = await Course.findById(courseId);
+    const course = await Course.findById(courseId).populate({ path: 'creatorId', select: 'firstName lastName _id' });
     if (!course) {
       return res.status(404).json({ errors: 'Course not found' });
     }
-    res.json(course);
+    // Flatten creatorId for easier frontend use
+    const courseObj = course.toObject();
+    if (courseObj.creatorId && typeof courseObj.creatorId === 'object') {
+      courseObj.creatorId = courseObj.creatorId._id?.toString();
+      courseObj.creatorName = course.creatorId.firstName + ' ' + course.creatorId.lastName;
+    }
+    res.json(courseObj);
   } catch (error) {
     console.error('Error fetching course:', error);
     return res.status(500).json({ errors: 'Server Error' });

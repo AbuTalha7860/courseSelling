@@ -151,9 +151,17 @@ const Courses = () => {
                     {loading ? (
                         <Loader />
                     ) : courses.length === 0 ? (
-                        <p className="text-center text-gray-500">
-                            No course posted yet by admin
-                        </p>
+                        <div className="flex flex-col items-center justify-center h-full py-10">
+                            <p className="text-center text-gray-500 text-lg mb-4">
+                                No courses available yet. Please check back later!
+                            </p>
+                            <Link
+                                to="/"
+                                className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition"
+                            >
+                                Go to Home
+                            </Link>
+                        </div>
                     ) : (
                         <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-8">
                             {courses.map((course) => (

@@ -8,6 +8,7 @@ import { RiHome2Fill } from 'react-icons/ri';
 import { HiMenu, HiX } from 'react-icons/hi';
 import { Link, useNavigate } from 'react-router-dom';
 import { BACKEND_URL } from '../utils/utils';
+import Loader from './Loader';
 
 // Helper function to check if token is expired
 const isTokenExpired = (token) => {
@@ -184,17 +185,7 @@ function Purchases() {
         )}
 
         {loading ? (
-          <div className="text-gray-500 text-center flex items-center justify-center">
-            <svg className="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8v8H4z"
-              />
-            </svg>
-            Loading purchases...
-          </div>
+          <Loader />
         ) : purchases.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {purchases.map((purchase, index) => (

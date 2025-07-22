@@ -3,8 +3,8 @@ import axios from 'axios';
 import { BACKEND_URL } from '../utils/utils';
 
 const Settings = () => {
-  const [email, setEmail] = useState('name@email.com');
-  const [name, setName] = useState('John Doe');
+  const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [notifications, setNotifications] = useState(true);
@@ -84,24 +84,7 @@ const Settings = () => {
             Update Password
           </button>
         </form>
-        <form className="space-y-6 mt-8">
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              checked={notifications}
-              onChange={e => setNotifications(e.target.checked)}
-              className="mr-2"
-            />
-            <span className="text-gray-700">Enable email notifications</span>
-          </div>
-          <button
-            type="button"
-            className="w-full bg-blue-500 text-white py-2 rounded-lg font-semibold hover:bg-blue-600 transition-all duration-300"
-            onClick={() => alert('Notification preferences saved!')}
-          >
-            Save Notification Preferences
-          </button>
-        </form>
+        
       </div>
     </div>
   );

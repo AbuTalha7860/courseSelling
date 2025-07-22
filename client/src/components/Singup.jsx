@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { BACKEND_URL } from "../utils/utils";
+import Loader from './Loader';
 
 function Signup() {
   const [firstName, setFirstName] = useState("");
@@ -12,6 +13,7 @@ function Signup() {
   const [password, setPassword] = useState("");
 
   const [errorMessage, setErrorMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -19,6 +21,7 @@ function Signup() {
     e.preventDefault();
   
     try {
+      setLoading(true);
       const response = await axios.post(
         `${BACKEND_URL}/user/signup`,
         {
@@ -38,6 +41,7 @@ function Signup() {
       toast.success(response.data.msg);
       navigate("/login");
     } catch (error) {
+      setLoading(false);
       if (error.response) {
         const errorMessage = error.response.data.msg || error.response.data.errors || "Signup failed!!!";
         // alert(errorMessage);
@@ -152,8 +156,9 @@ function Signup() {
             <button
               type="submit"
               className="w-full bg-orange-500 hover:bg-blue-600 text-white py-3 px-6 rounded-md transition"
+              disabled={loading}
             >
-              Signup
+              {loading ? <Loader /> : "Signup"}
             </button>
           </form>
         </div>

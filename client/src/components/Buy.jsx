@@ -6,6 +6,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useElements, useStripe } from '@stripe/react-stripe-js';
 import { BACKEND_URL } from '../utils/utils';
 import Modal from 'react-modal';
+import Loader from './Loader';
 
 // Helper function to check if token is expired
 const isTokenExpired = (token) => {
@@ -214,7 +215,7 @@ function Buy() {
       ) : (
         <div className="flex flex-col md:flex-row justify-center items-start min-h-screen bg-gray-100 p-4">
           {loading || !course ? (
-            <p className="text-center text-gray-600">Loading...</p>
+            <Loader />
           ) : (
             <form onSubmit={handlePurchase} className="w-full max-w-4xl flex flex-col md:flex-row gap-6">
               <div className="w-full md:w-1/2 bg-white p-6 rounded-lg shadow-md">

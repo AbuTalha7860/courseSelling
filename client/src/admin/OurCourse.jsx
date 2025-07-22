@@ -10,6 +10,8 @@ const OurCourse = () => {
     const admin = JSON.parse(localStorage.getItem('admin')) || {};
     const token = admin?.token || null;
     const [adminError, setAdminError] = useState(null);
+    const [editError, setEditError] = useState(null);
+    const adminId = admin?.id || admin?._id || null;
 
     const fetchCourses = async () => {
         console.log('OurCourse component mounted');
@@ -52,6 +54,14 @@ const OurCourse = () => {
         }
     };
 
+    const handleEdit = (course) => {
+        if (course.creatorId && adminId && course.creatorId !== adminId) {
+            setEditError(`You cannot edit this course. It was created by another admin (ID: ${course.creatorId}).`);
+        } else {
+            navigate(`/admin/update-course/${course._id}`);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gray-100 py-10">
             <div className="max-w-6xl mx-auto px-4">
@@ -84,12 +94,12 @@ const OurCourse = () => {
                                     ${course.price}
                                 </p>
                                 <div className="flex justify-between">
-                                    <Link
-                                        to={`/admin/update-course/${course._id}`}
+                                    <button
+                                        onClick={() => handleEdit(course)}
                                         className="py-2 px-4 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors duration-200"
                                     >
                                         Edit
-                                    </Link>
+                                    </button>
                                     <button
                                         onClick={() => handleDelete(course._id)}
                                         className="py-2 px-4 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors duration-200"
@@ -130,6 +140,41 @@ const OurCourse = () => {
                     <p className="mb-6 text-gray-700">{adminError}</p>
                     <button
                         onClick={() => setAdminError(null)}
+                        className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                    >
+                        Close
+                    </button>
+                </Modal>
+            )}
+            {editError && (
+                <Modal
+                    isOpen={true}
+                    onRequestClose={() => setEditError(null)}
+                    contentLabel="Edit Error"
+                    ariaHideApp={false}
+                    style={{
+                        overlay: { backgroundColor: 'rgba(30,41,59,0.6)' },
+                        content: {
+                            width: '350px',
+                            height: '200px',
+                            margin: 'auto',
+                            textAlign: 'center',
+                            borderRadius: '16px',
+                            padding: '32px',
+                            background: '#fff',
+                            boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.18)',
+                            border: 'none',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        }
+                    }}
+                >
+                    <h2 className="text-xl font-bold text-red-600 mb-4">Permission Denied</h2>
+                    <p className="mb-6 text-gray-700">{editError}</p>
+                    <button
+                        onClick={() => setEditError(null)}
                         className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                     >
                         Close

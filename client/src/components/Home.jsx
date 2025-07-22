@@ -10,11 +10,13 @@ import toast from 'react-hot-toast';
 import { BACKEND_URL } from '../utils/utils';
 import Modal from 'react-modal';
 import { FaUser, FaUserShield } from 'react-icons/fa';
+import Loader from './Loader';
 
 const Home = () => {
   const [courses, setCourses] = useState([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useState(() => {
     const token = localStorage.getItem('user')
@@ -48,6 +50,8 @@ const Home = () => {
         setCourses(response.data);
       } catch (error) {
         console.log("Error fetching courses", error);
+      } finally {
+        setLoading(false);
       }
     };
     fetchCourses();
@@ -191,25 +195,34 @@ const Home = () => {
           </div>
         </section>
         <section className='flex-1'>
-          <Slider {...settings} className="space-x-4">
-            {courses.map((course) => (
-              <div key={course._id} className="px-2">
-                <div className="p-4 bg-gray-900 rounded-lg overflow-hidden shadow-md">
-                  <div className="relative flex-shrink-0 w-92 transition-transform duration-300 transform hover:scale-105">
-                    <img
-                      src={course.image?.url || "https://picsum.photos/150"}
-                      alt={course.title}
-                      className="w-full h-32 object-contain"
-                    />
-                    <div className="mt-4 text-center">
-                      <h3 className="text-xl font-semibold">{course.title}</h3>
-                      <button className='mt-4 bg-orange-500 text-white py-2 px-4 rounded-full hover:bg-blue-500 duration-300'>Enroll Now</button>
+          {loading ? (
+            <Loader />
+          ) : courses.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-40">
+              <p className="text-gray-400 text-lg mb-4">No courses available at the moment. Please check back soon!</p>
+              <Link to="/" className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition">Go to Home</Link>
+            </div>
+          ) : (
+            <Slider {...settings} className="space-x-4">
+              {courses.map((course) => (
+                <div key={course._id} className="px-2">
+                  <div className="p-4 bg-gray-900 rounded-lg overflow-hidden shadow-md">
+                    <div className="relative flex-shrink-0 w-92 transition-transform duration-300 transform hover:scale-105">
+                      <img
+                        src={course.image?.url || "https://picsum.photos/150"}
+                        alt={course.title}
+                        className="w-full h-32 object-contain"
+                      />
+                      <div className="mt-4 text-center">
+                        <h3 className="text-xl font-semibold">{course.title}</h3>
+                        <button className='mt-4 bg-orange-500 text-white py-2 px-4 rounded-full hover:bg-blue-500 duration-300'>Enroll Now</button>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </Slider>
+              ))}
+            </Slider>
+          )}
         </section>
 
         <hr />

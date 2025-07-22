@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import logo from "../../public/logo.webp";
 import toast from "react-hot-toast";
 import axios from "axios";
@@ -8,6 +8,7 @@ import { BACKEND_URL } from "../utils/utils";
 function Dashboard() {
   const [stats, setStats] = useState({ courses: 0, users: 0, purchases: 0 });
   const [loadingStats, setLoadingStats] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -29,6 +30,7 @@ function Dashboard() {
       });
       toast.success(response.data.message);
       localStorage.removeItem("admin");
+      navigate("/");
     } catch (error) {
       console.log("Error in logging out ", error);
       toast.error(error.response.data.errors || "Error in logging out");
@@ -59,14 +61,12 @@ function Dashboard() {
               Home
             </button>
           </Link>
-          <Link to="/admin/login">
-            <button
-              onClick={handleLogout}
-              className="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-2 rounded"
-            >
-              Logout
-            </button>
-          </Link>
+          <button
+            onClick={handleLogout}
+            className="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-2 rounded"
+          >
+            Logout
+          </button>
         </nav>
       </div>
       {/* Main Content */}

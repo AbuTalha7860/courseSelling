@@ -14,6 +14,11 @@ function UpdateCourse() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [adminError, setAdminError] = useState(null);
+    const [creatorId, setCreatorId] = useState("");
+    const [creatorName, setCreatorName] = useState("");
+    const [editBlocked, setEditBlocked] = useState(false);
+    const admin = JSON.parse(localStorage.getItem("admin") || '{}');
+    const adminId = admin?.id || admin?._id || null;
 
     const navigate = useNavigate();
     const { id } = useParams();
@@ -33,6 +38,11 @@ function UpdateCourse() {
                     setDescription(data.description || "");
                     setPrice(data.price ? data.price.toString() : "");
                     setImagePreview(data.image?.url || "");
+                    setCreatorId(data.creatorId || "");
+                    setCreatorName(data.creatorName || "");
+                    if (data.creatorId && adminId && data.creatorId !== adminId) {
+                        setEditBlocked(true);
+                    }
                     setLoading(false);
                 }
             } catch (error) {
@@ -143,6 +153,44 @@ function UpdateCourse() {
             <div className="min-h-screen flex items-center justify-center bg-gray-100">
                 <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
             </div>
+        );
+    }
+
+    if (editBlocked) {
+        return (
+            <Modal
+                isOpen={true}
+                onRequestClose={() => navigate("/admin/our-courses")}
+                contentLabel="Edit Blocked"
+                ariaHideApp={false}
+                style={{
+                    overlay: { backgroundColor: 'rgba(30,41,59,0.6)' },
+                    content: {
+                        width: '350px',
+                        height: '200px',
+                        margin: 'auto',
+                        textAlign: 'center',
+                        borderRadius: '16px',
+                        padding: '32px',
+                        background: '#fff',
+                        boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.18)',
+                        border: 'none',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                    }
+                }}
+            >
+                <h2 className="text-xl font-bold text-red-600 mb-4">Permission Denied</h2>
+                <p className="mb-6 text-gray-700">You cannot edit this course. It was created by another admin{creatorName ? ` (${creatorName})` : creatorId ? ` (ID: ${creatorId})` : ''}.</p>
+                <button
+                    onClick={() => navigate("/admin/our-courses")}
+                    className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                >
+                    Back to Courses
+                </button>
+            </Modal>
         );
     }
 
