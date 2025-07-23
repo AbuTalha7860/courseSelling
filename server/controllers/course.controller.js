@@ -136,8 +136,17 @@ export const deleteCourse = async (req, res) => {
 
 export const getCourses = async (req, res) => {
   try {
-    const courses = await Course.find({});
-    res.json(courses);
+    const courses = await Course.find({}).populate({ path: 'creatorId', select: 'firstName lastName _id' });
+    // Flatten creatorId for each course
+    const coursesWithCreator = courses.map(course => {
+      const obj = course.toObject();
+      if (obj.creatorId && typeof obj.creatorId === 'object') {
+        obj.creatorId = obj.creatorId._id?.toString();
+        obj.creatorName = course.creatorId.firstName + ' ' + course.creatorId.lastName;
+      }
+      return obj;
+    });
+    res.json(coursesWithCreator);
   } catch (error) {
     console.error('Error fetching courses:', error);
     return res.status(500).json({ errors: 'Server Error' });

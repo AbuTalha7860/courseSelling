@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { BACKEND_URL } from '../utils/utils';
 import Modal from 'react-modal';
+import toast from 'react-hot-toast';
+import { FaLock } from 'react-icons/fa';
 
 const OurCourse = () => {
     const [courses, setCourses] = useState([]);
@@ -11,7 +13,10 @@ const OurCourse = () => {
     const token = admin?.token || null;
     const [adminError, setAdminError] = useState(null);
     const [editError, setEditError] = useState(null);
+    const [deleteError, setDeleteError] = useState(null);
     const adminId = admin?.id || admin?._id || null;
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [courseToDelete, setCourseToDelete] = useState(null);
 
     const fetchCourses = async () => {
         console.log('OurCourse component mounted');
@@ -31,17 +36,22 @@ const OurCourse = () => {
         fetchCourses();
     }, []);
 
-    const handleDelete = async (courseId) => {
-        if (!window.confirm('Are you sure you want to delete this course?')) {
+    const handleDelete = async (course) => {
+        if (course.creatorId && adminId && course.creatorId.toString() !== adminId.toString()) {
+            setDeleteError(`You cannot delete this course. It was created by another admin${course.creatorName ? ` (${course.creatorName})` : course.creatorId ? ` (ID: ${course.creatorId})` : ''}.`);
             return;
         }
+        setCourseToDelete(course);
+        setShowDeleteModal(true);
+    };
 
+    const confirmDelete = async () => {
+        if (!courseToDelete) return;
         try {
-            const response = await axios.delete(`${BACKEND_URL}/courses/${courseId}`, {
+            const response = await axios.delete(`${BACKEND_URL}/courses/${courseToDelete._id}`, {
                 headers: { Authorization: `Bearer ${token}` },
                 withCredentials: true,
             });
-            console.log('Delete Response:', response.data);
             fetchCourses(); // Refresh the course list
         } catch (error) {
             console.error('Error deleting course:', error);
@@ -49,8 +59,11 @@ const OurCourse = () => {
             if (backendMsg && backendMsg.includes('created by another admin')) {
                 setAdminError(backendMsg);
             } else {
-                alert(backendMsg || 'Error deleting course');
+                toast.error(backendMsg || 'Error deleting course');
             }
+        } finally {
+            setShowDeleteModal(false);
+            setCourseToDelete(null);
         }
     };
 
@@ -96,14 +109,20 @@ const OurCourse = () => {
                                 <div className="flex justify-between">
                                     <button
                                         onClick={() => handleEdit(course)}
-                                        className="py-2 px-4 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors duration-200"
+                                        className={`py-2 px-4 rounded-md flex items-center justify-center gap-2 transition-colors duration-200 ${course.creatorId && adminId && course.creatorId.toString() !== adminId.toString() ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-700'}`}
+                                        disabled={course.creatorId && adminId && course.creatorId.toString() !== adminId.toString()}
+                                        title={course.creatorId && adminId && course.creatorId.toString() !== adminId.toString() ? 'You cannot edit this course. It was created by another admin.' : 'Edit this course'}
                                     >
+                                        {course.creatorId && adminId && course.creatorId.toString() !== adminId.toString() ? <FaLock className="text-white" /> : null}
                                         Edit
                                     </button>
                                     <button
-                                        onClick={() => handleDelete(course._id)}
-                                        className="py-2 px-4 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors duration-200"
+                                        onClick={() => handleDelete(course)}
+                                        className={`py-2 px-4 rounded-md flex items-center justify-center gap-2 transition-colors duration-200 ${course.creatorId && adminId && course.creatorId.toString() !== adminId.toString() ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-600 text-white hover:bg-red-700'}`}
+                                        disabled={course.creatorId && adminId && course.creatorId.toString() !== adminId.toString()}
+                                        title={course.creatorId && adminId && course.creatorId.toString() !== adminId.toString() ? 'You cannot delete this course. It was created by another admin.' : 'Delete this course'}
                                     >
+                                        {course.creatorId && adminId && course.creatorId.toString() !== adminId.toString() ? <FaLock className="text-white" /> : null}
                                         Delete
                                     </button>
                                 </div>
@@ -179,6 +198,84 @@ const OurCourse = () => {
                     >
                         Close
                     </button>
+                </Modal>
+            )}
+            {deleteError && (
+                <Modal
+                    isOpen={true}
+                    onRequestClose={() => setDeleteError(null)}
+                    contentLabel="Delete Error"
+                    ariaHideApp={false}
+                    style={{
+                        overlay: { backgroundColor: 'rgba(30,41,59,0.6)' },
+                        content: {
+                            width: '350px',
+                            height: '200px',
+                            margin: 'auto',
+                            textAlign: 'center',
+                            borderRadius: '16px',
+                            padding: '32px',
+                            background: '#fff',
+                            boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.18)',
+                            border: 'none',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        }
+                    }}
+                >
+                    <h2 className="text-xl font-bold text-red-600 mb-4">Permission Denied</h2>
+                    <p className="mb-6 text-gray-700">{deleteError}</p>
+                    <button
+                        onClick={() => setDeleteError(null)}
+                        className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                    >
+                        Close
+                    </button>
+                </Modal>
+            )}
+            {showDeleteModal && (
+                <Modal
+                    isOpen={true}
+                    onRequestClose={() => { setShowDeleteModal(false); setCourseToDelete(null); }}
+                    contentLabel="Delete Confirmation"
+                    ariaHideApp={false}
+                    style={{
+                        overlay: { backgroundColor: 'rgba(30,41,59,0.6)' },
+                        content: {
+                            width: '350px',
+                            height: '200px',
+                            margin: 'auto',
+                            textAlign: 'center',
+                            borderRadius: '16px',
+                            padding: '32px',
+                            background: '#fff',
+                            boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.18)',
+                            border: 'none',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        }
+                    }}
+                >
+                    <h2 className="text-xl font-bold text-red-600 mb-4">Confirm Delete</h2>
+                    <p className="mb-6 text-gray-700">Are you sure you want to delete this course?</p>
+                    <div className="flex gap-4 justify-center">
+                        <button
+                            onClick={confirmDelete}
+                            className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                        >
+                            Delete
+                        </button>
+                        <button
+                            onClick={() => { setShowDeleteModal(false); setCourseToDelete(null); }}
+                            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                        >
+                            Cancel
+                        </button>
+                    </div>
                 </Modal>
             )}
         </div>

@@ -43,35 +43,35 @@ function Login() {
 
   return (
     <div className="bg-gradient-to-r from-black to-blue-950 min-h-screen">
-      <div className="h-screen container mx-auto flex items-center justify-center text-white">
-        <header className="absolute top-0 left-0 w-full flex justify-between items-center p-5">
+      <div className="min-h-screen container mx-auto flex items-center justify-center text-white px-2 sm:px-4">
+        <header className="absolute top-0 left-0 w-full flex flex-col sm:flex-row justify-between items-center p-3 sm:p-5 gap-2 sm:gap-0">
           <div className="flex items-center space-x-2">
             <img src={logo} alt="Logo" className="w-10 h-10 rounded-full" />
-            <Link to={"/"} className="text-xl font-bold text-orange-500">
+            <Link to={"/"} className="text-lg sm:text-xl font-bold text-orange-500">
               CourseHaven
             </Link>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             <Link
               to={"/signup"}
-              className="bg-transparent border border-gray-500 p-1 text-sm md:text-md md:py-2 md:px-4 rounded-md"
+              className="bg-transparent border border-gray-500 p-1 text-xs sm:text-sm md:text-md md:py-2 md:px-4 rounded-md"
             >
               Signup
             </Link>
             <Link
               to={"/courses"}
-              className="bg-orange-500 p-1 text-sm md:text-md md:py-2 md:px-4 rounded-md"
+              className="bg-orange-500 p-1 text-xs sm:text-sm md:text-md md:py-2 md:px-4 rounded-md"
             >
               Join now
             </Link>
           </div>
         </header>
 
-        <div className="bg-gray-900 p-8 rounded-lg shadow-lg w-[500px] m-8 md:m-0 mt-20">
-          <h2 className="text-2xl font-bold mb-4 text-center">
+        <div className="bg-gray-900 p-4 sm:p-8 rounded-lg shadow-lg w-full max-w-xs sm:max-w-md md:max-w-lg m-4 md:m-0 mt-20">
+          <h2 className="text-xl sm:text-2xl font-bold mb-4 text-center">
             Welcome to <span className="text-orange-500">CourseHaven</span>
           </h2>
-          <p className="text-center text-gray-400 mb-6">
+          <p className="text-center text-gray-400 mb-6 text-sm sm:text-base">
             Log in to access paid content!
           </p>
 

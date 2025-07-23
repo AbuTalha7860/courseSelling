@@ -128,31 +128,29 @@ const Courses = () => {
             </aside>
 
             {/* Main content */}
-            <main className="ml-0 md:ml-64 w-full bg-white p-10">
-                <header className="flex justify-between items-center mb-10">
-                    <h1 className="text-xl font-bold">Courses</h1>
-                    <div className="flex items-center space-x-3">
+            <main className="ml-0 md:ml-64 w-full bg-white p-4 sm:p-6 md:p-10">
+                <header className="flex flex-col sm:flex-row justify-between items-center mb-6 sm:mb-10 gap-4 sm:gap-0">
+                    <h1 className="text-lg sm:text-xl font-bold">Courses</h1>
+                    <div className="flex items-center space-x-2 sm:space-x-3">
                         <div className="flex items-center">
                             <input
                                 type="text"
                                 placeholder="Type here to search..."
-                                className="border border-gray-300 rounded-l-full px-4 py-2 h-10 focus:outline-none"
+                                className="border border-gray-300 rounded-l-full px-2 sm:px-4 py-2 h-8 sm:h-10 focus:outline-none text-sm sm:text-base"
                             />
-                            <button className="h-10 border border-gray-300 rounded-r-full px-4 flex items-center justify-center">
-                                <FiSearch className="text-xl text-gray-600" />
+                            <button className="h-8 sm:h-10 border border-gray-300 rounded-r-full px-2 sm:px-4 flex items-center justify-center">
+                                <FiSearch className="text-lg sm:text-xl text-gray-600" />
                             </button>
                         </div>
-                        <FaCircleUser className="text-4xl text-blue-600" />
+                        <FaCircleUser className="text-2xl sm:text-4xl text-blue-600" />
                     </div>
                 </header>
-
-                {/* Vertically Scrollable Courses Section */}
-                <div className="overflow-y-auto h-[75vh]">
+                <div className="overflow-y-auto h-[60vh] sm:h-[75vh]">
                     {loading ? (
                         <Loader />
                     ) : courses.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-full py-10">
-                            <p className="text-center text-gray-500 text-lg mb-4">
+                            <p className="text-center text-gray-500 text-base sm:text-lg mb-4">
                                 No courses available yet. Please check back later!
                             </p>
                             <Link
@@ -163,39 +161,39 @@ const Courses = () => {
                             </Link>
                         </div>
                     ) : (
-                        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-8">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-8">
                             {courses.map((course) => (
                                 <div
                                     key={course._id}
-                                    className="bg-white border border-gray-200 rounded-2xl p-5 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-2xl flex flex-col justify-between"
+                                    className="bg-white border border-gray-200 rounded-2xl p-3 sm:p-5 shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-2xl flex flex-col justify-between"
                                 >
                                     {course.image?.url ? (
                                         <img
                                             src={course.image.url}
                                             alt={course.title}
-                                            className="rounded-xl mb-4 h-48 w-full object-cover shadow-sm transition-all duration-300"
+                                            className="rounded-xl mb-2 sm:mb-4 h-32 sm:h-48 w-full object-cover shadow-sm transition-all duration-300"
                                         />
                                     ) : (
-                                        <div className="rounded-xl mb-4 bg-gray-200 h-48 flex items-center justify-center text-gray-400 text-lg">
+                                        <div className="rounded-xl mb-2 sm:mb-4 bg-gray-200 h-32 sm:h-48 flex items-center justify-center text-gray-400 text-base sm:text-lg">
                                             No Image Available
                                         </div>
                                     )}
-                                    <h2 className="font-bold text-xl mb-2 text-blue-900 transition-all duration-300">{course.title}</h2>
-                                    <p className="text-gray-600 mb-4 text-sm transition-all duration-300">
+                                    <h2 className="font-bold text-base sm:text-xl mb-1 sm:mb-2 text-blue-900 transition-all duration-300">{course.title}</h2>
+                                    <p className="text-gray-600 mb-2 sm:mb-4 text-xs sm:text-sm transition-all duration-300">
                                         {course.description.length > 100
                                             ? `${course.description.slice(0, 100)}...`
                                             : course.description}
                                     </p>
-                                    <div className="flex justify-between items-center mb-4">
-                                        <span className="font-bold text-2xl text-orange-600 transition-all duration-300">
+                                    <div className="flex justify-between items-center mb-2 sm:mb-4">
+                                        <span className="font-bold text-lg sm:text-2xl text-orange-600 transition-all duration-300">
                                             ₹{course.price}
                                         </span>
-                                        <span className="text-gray-400 line-through text-lg transition-all duration-300">₹5999</span>
-                                        <span className="text-green-600 font-semibold ml-2 transition-all duration-300">20% off</span>
+                                        <span className="text-gray-400 line-through text-sm sm:text-lg transition-all duration-300">₹5999</span>
+                                        <span className="text-green-600 font-semibold ml-2 transition-all duration-300 text-xs sm:text-base">20% off</span>
                                     </div>
                                     <Link
                                         to={`/buy/${course._id}`}
-                                        className="bg-gradient-to-r from-orange-500 to-orange-700 w-full text-white px-4 py-2 rounded-lg shadow-md hover:from-blue-600 hover:to-blue-900 hover:shadow-lg transition-all duration-300 text-center font-semibold tracking-wide mt-auto focus:outline-none focus:ring-2 focus:ring-orange-400"
+                                        className="bg-gradient-to-r from-orange-500 to-orange-700 w-full text-white px-2 sm:px-4 py-2 rounded-lg shadow-md hover:from-blue-600 hover:to-blue-900 hover:shadow-lg transition-all duration-300 text-center font-semibold tracking-wide mt-auto focus:outline-none focus:ring-2 focus:ring-orange-400 text-sm sm:text-base"
                                     >
                                         Buy Now
                                     </Link>

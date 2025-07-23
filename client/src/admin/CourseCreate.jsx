@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { BACKEND_URL } from '../utils/utils';
 
 const CourseCreate = () => {
     const [title, setTitle] = useState('');

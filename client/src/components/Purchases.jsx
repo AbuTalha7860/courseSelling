@@ -115,14 +115,14 @@ function Purchases() {
   };
 
   return (
-    <div className="flex h-screen">
+    <div className="flex flex-col md:flex-row h-screen">
       <div
-        className={`fixed inset-y-0 left-0 bg-gray-100 p-5 transform ${
+        className={`fixed inset-y-0 left-0 bg-gray-100 p-3 sm:p-5 transform ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } md:translate-x-0 transition-transform duration-300 ease-in-out w-64 z-50`}
+        } md:translate-x-0 transition-transform duration-300 ease-in-out w-48 sm:w-64 z-50`}
       >
         <nav>
-          <ul className="mt-16 md:mt-0">
+          <ul className="mt-12 sm:mt-16 md:mt-0">
             <li className="mb-4">
               <Link to="/" className="flex items-center">
                 <RiHome2Fill className="mr-2" /> Home
@@ -162,15 +162,15 @@ function Purchases() {
         className="fixed top-4 left-4 z-50 md:hidden bg-blue-600 text-white p-2 rounded-lg"
         onClick={toggleSidebar}
       >
-        {isSidebarOpen ? <HiX className="text-2xl" /> : <HiMenu className="text-2xl" />}
+        {isSidebarOpen ? <HiX className="text-xl sm:text-2xl" /> : <HiMenu className="text-xl sm:text-2xl" />}
       </button>
 
       <div
-        className={`flex-1 p-8 bg-gray-50 transition-all duration-300 ${
-          isSidebarOpen ? 'ml-64' : 'ml-0'
+        className={`flex-1 p-4 sm:p-8 bg-gray-50 transition-all duration-300 ${
+          isSidebarOpen ? 'ml-48 sm:ml-64' : 'ml-0'
         } md:ml-64`}
       >
-        <h2 className="text-xl font-semibold mt-6 md:mt-0 mb-6">My Purchases</h2>
+        <h2 className="text-lg sm:text-xl font-semibold mt-4 sm:mt-6 md:mt-0 mb-4 sm:mb-6">My Purchases</h2>
 
         {errorMessage && (
           <div className="text-red-500 text-center mb-4">
@@ -187,24 +187,24 @@ function Purchases() {
         {loading ? (
           <Loader />
         ) : purchases.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
             {purchases.map((purchase, index) => (
-              <div key={purchase._id || index} className="bg-white rounded-lg shadow-md p-6 mb-6">
-                <div className="flex flex-col items-center space-y-4">
+              <div key={purchase._id || index} className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-4 sm:mb-6">
+                <div className="flex flex-col items-center space-y-2 sm:space-y-4">
                   <img
-                    className="rounded-lg w-full h-48 object-cover"
+                    className="rounded-lg w-full h-32 sm:h-48 object-cover"
                     src={purchase.image?.url || 'https://placehold.co/200'}
                     alt={purchase.title || 'Course image'}
                     onError={(e) => { e.target.src = 'https://placehold.co/200'; }}
                   />
                   <div className="text-center">
-                    <h3 className="text-lg font-bold">{purchase.title || 'Untitled Course'}</h3>
-                    <p className="text-gray-500">
+                    <h3 className="text-base sm:text-lg font-bold">{purchase.title || 'Untitled Course'}</h3>
+                    <p className="text-gray-500 text-xs sm:text-base">
                       {purchase.description && purchase.description.length > 100
                         ? `${purchase.description.slice(0, 100)}...`
                         : purchase.description || 'No description available'}
                     </p>
-                    <span className="text-green-700 font-semibold text-sm">
+                    <span className="text-green-700 font-semibold text-xs sm:text-sm">
                       ${purchase.price?.toFixed(2) || 'N/A'} only
                     </span>
                   </div>

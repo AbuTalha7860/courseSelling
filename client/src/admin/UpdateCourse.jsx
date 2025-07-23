@@ -38,17 +38,23 @@ function UpdateCourse() {
                     setDescription(data.description || "");
                     setPrice(data.price ? data.price.toString() : "");
                     setImagePreview(data.image?.url || "");
-                    setCreatorId(data.creatorId || "");
+                    setCreatorId(data.creatorId ? data.creatorId.toString() : "");
                     setCreatorName(data.creatorName || "");
-                    if (data.creatorId && adminId && data.creatorId !== adminId) {
+                    if (data.creatorId && adminId && data.creatorId.toString() !== adminId.toString()) {
                         setEditBlocked(true);
                     }
                     setLoading(false);
                 }
             } catch (error) {
                 if (isMounted) {
-                    console.error("Error fetching course:", error);
-                    setError(error.response?.data?.errors || "Failed to fetch course");
+                    const backendMsg = error.response?.data?.error || error.response?.data?.errors;
+                    if (error.response?.status === 403 && backendMsg && backendMsg.includes('created by another admin')) {
+                        setEditBlocked(true);
+                        setCreatorId(data?.creatorId ? data.creatorId.toString() : "");
+                        setCreatorName(data?.creatorName || "");
+                    } else {
+                        setError(error.response?.data?.errors || "Failed to fetch course");
+                    }
                     setLoading(false);
                     toast.error(error.response?.data?.errors || "Failed to fetch course details");
                 }
